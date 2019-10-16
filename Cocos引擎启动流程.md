@@ -1,6 +1,6 @@
-##Android端启动流程   
+## Android端启动流程   
 
-#####1.Android 应用启动之后 在Cocos2dxActivity 的onCreate()生命周期中 加载jni,c++ onLoad方法中启动appDelegate。当Android的VM(Virtual Machine)执行到C组件(即*so档)里的System.loadLibrary()函数时，首先会去执行C组件里的JNI_OnLoad()函数。    
+##### 1.Android 应用启动之后 在Cocos2dxActivity 的onCreate()生命周期中 加载jni,c++ onLoad方法中启动appDelegate。当Android的VM(Virtual Machine)执行到C组件(即*so档)里的System.loadLibrary()函数时，首先会去执行C组件里的JNI_OnLoad()函数。    
   
 ```   
 cocos2d/cocos/platform/android/javaactivity-android.cpp
@@ -25,7 +25,7 @@ cocos2d/cocos/platform/android/javaactivity-android.cpp
 	}
 ```   
        
-#####2.在init方法中初始化Cocos2dxGLSurfaceView，用于绘制游戏内容。设置Cocos2dxRenderer,Cocos2dxRenderer继承自 GLSurfaceView.Renderer，在onSurfaceCreated 方法中会调用nativeInit,jni调用c++中的方法，设置OpenGLView  
+##### 2.在init方法中初始化Cocos2dxGLSurfaceView，用于绘制游戏内容。设置Cocos2dxRenderer,Cocos2dxRenderer继承自 GLSurfaceView.Renderer，在onSurfaceCreated 方法中会调用nativeInit,jni调用c++中的方法，设置OpenGLView  
 ```
 cocos2d/cocos/platform/android/javaactivity-android.cpp    
 
@@ -56,7 +56,7 @@ cocos2d/cocos/platform/android/javaactivity-android.cpp
 	}      
 
 ``` 
-#####3.Cocos2dxRenderer继承自 GLSurfaceView.Renderer，会循坏调用onDrawFrame方法，在onDrawFrame方法中调用Native方法nativeRender();c++中具体实现
+##### 3.Cocos2dxRenderer继承自 GLSurfaceView.Renderer，会循坏调用onDrawFrame方法，在onDrawFrame方法中调用Native方法nativeRender();c++中具体实现
 ```
 cocos2d/cocos/platform/android/jni/Java_org_cocos2dx_lib_Cocos2dxRenderer_nativeRender.cpp    
 
@@ -64,15 +64,15 @@ cocos2d/cocos/platform/android/jni/Java_org_cocos2dx_lib_Cocos2dxRenderer_native
         cocos2d::Director::getInstance()->mainLoop();
     }
 ```      
-#####4.通过以上步骤即实现Android应用启动后启动cocos引擎，循环调用cocos的mainLoop方法，处理游戏逻辑，绘制界面    
+##### 4.通过以上步骤即实现Android应用启动后启动cocos引擎，循环调用cocos的mainLoop方法，处理游戏逻辑，绘制界面    
        
        
  ---------     
  
       
-##IOS端启动流程       
+## IOS端启动流程       
 
-#####1.ios程序启动入口 main.m中启动AppController这个类
+##### 1.ios程序启动入口 main.m中启动AppController这个类
 ```
 	int main(int argc, char *argv[]) {
     
@@ -83,7 +83,7 @@ cocos2d/cocos/platform/android/jni/Java_org_cocos2dx_lib_Cocos2dxRenderer_native
 	}
 ```     
 
-#####2.AppController.mm 中执行application的run方法
+##### 2.AppController.mm 中执行application的run方法
 ```
 	static AppDelegate s_sharedApplication;
 
@@ -101,7 +101,7 @@ cocos2d/cocos/platform/android/jni/Java_org_cocos2dx_lib_Cocos2dxRenderer_native
     		app->run();
 	}
 ```
-#####3.CCApplication-ios.mm的run方法具体实现
+##### 3.CCApplication-ios.mm的run方法具体实现
 ```
 	int Application::run()
 	{
@@ -113,7 +113,7 @@ cocos2d/cocos/platform/android/jni/Java_org_cocos2dx_lib_Cocos2dxRenderer_native
 	}
 ```
 
-#####4.CCDirectorCaller-ios.mm 的方法startMainLoop具体实现
+##### 4.CCDirectorCaller-ios.mm 的方法startMainLoop具体实现
 ```    
 	-(void) startMainLoop
 	{
@@ -139,10 +139,10 @@ CADisplayLink是一个能让我们以和屏幕刷新率相同的频率将内容�
 	}
 ``` 
 
-#####5.可以看到最终执行到的还是 cocos2d::Director 的mainLoop方法。即每帧都会调用mainLoop方法，循环调用。
+##### 5.可以看到最终执行到的还是 cocos2d::Director 的mainLoop方法。即每帧都会调用mainLoop方法，循环调用。
 ---
 
-##mainLoop方法分析
+## mainLoop方法分析
 `/cocos2d/cocos/base/CCDirector.cpp`     
 
 ```
@@ -167,9 +167,9 @@ CADisplayLink是一个能让我们以和屏幕刷新率相同的频率将内容�
 	}
 ```    
 
-#####1.判断是否清除导演退出。调用director->end() 方法会将_purgeDirectorInNextLoop置为true,在下一帧mainLoop方法时执行purgeDirector()方法，清除缓存，清除director退出游戏
-#####2.判断是否重新启动director。调用director->restar() 方法会将_restartDirectorInNextLoop值置为true,在下一帧mainLoop方法执行restartDirector()，重启director
-#####3.判断当前场景是否是无效场景， _invalid初始值为false,执行drawScene()方法，渲染图形以及处理消息事件
+##### 1.判断是否清除导演退出。调用director->end() 方法会将_purgeDirectorInNextLoop置为true,在下一帧mainLoop方法时执行purgeDirector()方法，清除缓存，清除director退出游戏
+##### 2.判断是否重新启动director。调用director->restar() 方法会将_restartDirectorInNextLoop值置为true,在下一帧mainLoop方法执行restartDirector()，重启director
+##### 3.判断当前场景是否是无效场景， _invalid初始值为false,执行drawScene()方法，渲染图形以及处理消息事件
 
 ### drawScene分析   
 ```
@@ -248,18 +248,18 @@ CADisplayLink是一个能让我们以和屏幕刷新率相同的频率将内容�
 	    }
 	}
 ```     
-#####1.calculateDeltaTime();计算时间差，两帧之间的时间差，保存在全局变量_deltaTime中   
-#####2.定时任务调用，执行update(_deltaTime)方法.    
+##### 1.calculateDeltaTime();计算时间差，两帧之间的时间差，保存在全局变量_deltaTime中   
+##### 2.定时任务调用，执行update(_deltaTime)方法.    
 Scheduler用于处理更新函数调用，场景中经常使用的schedulerUpdate()，然后实现一个update(float dt)方法，实际上就是将调用请求注册到了Scheduler中，之后再每一帧的mainLoop方法进行统一调用update()函数。    
 
-#####3.事件处理分发，将事件分发出去   
+##### 3.事件处理分发，将事件分发出去   
   
 ```   
 	_eventDispatcher->dispatchEvent(_eventBeforeUpdate);//马上要调用更新了
 	...    
     _eventDispatcher->dispatchEvent(_eventAfterUpdate);//更新调用完毕   
 ```    
-#####4.设置下一个场景    
+##### 4.设置下一个场景    
 判断下一个场景_nextScene是否不为空，如果不为空则调用setNextScene()方法，主要是把当前场景\_runningScene释放掉，\_runningScene生命周期进入onExit()，然后把 _nextScene设置为当前运行场景\_runningScene，将\_nextScene置空。当前运行场景生命周期进入onEnter().   
 
 ```   
@@ -300,7 +300,7 @@ Scheduler用于处理更新函数调用，场景中经常使用的schedulerUpdat
 	    }
 	}
 ```   
-#####5.调用当前场景的渲染方法
+##### 5.调用当前场景的渲染方法
   
 
 

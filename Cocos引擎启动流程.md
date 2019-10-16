@@ -1,6 +1,7 @@
-##Android端启动流程
-#####1.Android 应用启动之后 在Cocos2dxActivity 的onCreate()生命周期中 加载jni,c++ onLoad方法中启动appDelegate。当Android的VM(Virtual Machine)执行到C组件(即*so档)里的System.loadLibrary()函数时，首先会去执行C组件里的JNI_OnLoad()函数。   
+##Android端启动流程   
 
+#####1.Android 应用启动之后 在Cocos2dxActivity 的onCreate()生命周期中 加载jni,c++ onLoad方法中启动appDelegate。当Android的VM(Virtual Machine)执行到C组件(即*so档)里的System.loadLibrary()函数时，首先会去执行C组件里的JNI_OnLoad()函数。    
+  
 ```   
 cocos2d/cocos/platform/android/javaactivity-android.cpp
 	 JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved)

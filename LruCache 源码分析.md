@@ -9,8 +9,8 @@
 4).LruCache是线程安全的，在内部的get、put、remove以及trimToSize都是安全的   
  
 ```
-	LruCache<String, Bitmap> bitmapCache = new LruCache<String, Bitmap>(CACHE_SIZE){
-		@Override
+	LruCache<String, Bitmap> bitmapCache = new LruCache<String, Bitmap>(50*1024*1024){
+		 @Override
         protected int sizeOf(String key, Bitmap value) {
             return value.getByteCount();
         }
@@ -24,7 +24,7 @@
 
 #### 3.源码分析及具体实现   
 ##### 3.1 LruCache 原理   
-LruCache就是利用LinkedHashMap 的一个特性 （accessOrder=true 基于访问顺序）和对LinkedHashMap的数据操作上锁实现缓存策略。    
+LruCache就是利用LinkedHashMap 的一个特性基于访问顺序排序，当（accessOrder=true ）和对LinkedHashMap的数据操作上锁实现缓存策略。    
   
 + 1.LruCache构造函数中LinedHashMap 构造参数 accessOrder=true,实现了数据排序按照访问顺序；   
 + 2.每次 LruCache.get(K key) 方法中都会调用 LinkedHashMap.get(Object key);   
@@ -170,7 +170,7 @@ LruCache的实现主要是由LinkedHashMap实现，在LruCache的构造方法中
 LinkedHashMap是双向链表，LruCache.get->LinkedHashMap.get 的数据就被移动到了链表的最尾端。以上是LruCache的核心工作原理。   
 
 ---   
-##### 3.6LruCache.put(K key,V value)    
+##### 3.6 LruCache.put(K key,V value)    
 
 ```
     /**
@@ -196,13 +196,53 @@ LinkedHashMap是双向链表，LruCache.get->LinkedHashMap.get 的数据就被�
         }
 
         if (previous != null) {
-            entryRemoved(false, key, previous, value);
+            entryRemoved(false, key, previous, value);//通知新值替换旧值，自己重写entryRemoved方法
         }
 
-        trimToSize(maxSize);
+        trimToSize(maxSize);//当size大于设置的最大容量时，移除最近少访问的数据
         return previous;
     }
+```    
++ 1.先将值put进入LinkedHashMap，统计当前总容量
++ 2.如果已存在相同key的值，则减去之前值的容量，从新计算当前容量
++ 3.最后才是比较当前容量是否超出最大容量，当超出最大容量时，将最近最少访问的数据从LinkedHashMap中移除
+
+##### 3.7 LruCache.trimToSize   
+
 ```
+    public void trimToSize(int maxSize) {
+        while (true) {
+            K key;
+            V value;
+            synchronized (this) {
+                if (size < 0 || (map.isEmpty() && size != 0)) {
+                    throw new IllegalStateException(getClass().getName()
+                            + ".sizeOf() is reporting inconsistent results!");
+                }
+
+                if (size <= maxSize)//当前容量小于等于最大容量，则直接返回
+                {
+                    break;
+                }
+
+                Map.Entry<K, V> toEvict = map.eldest();//获取链表表头，即最少使用的数据
+                if (toEvict == null) //为空则直接返回
+                {
+                    break;
+                }
+
+                key = toEvict.getKey();//获取表头的key
+                value = toEvict.getValue();//获取最少使用的值
+                map.remove(key);//从LinkedHashMap中把最少使用的数据移除
+                size -= safeSizeOf(key, value);//减掉移除数据的大小
+                evictionCount++;//移除次数+1
+            }
+
+            entryRemoved(true, key, value, null);//告知数据被移除
+        }
+    }
+```   
+判断当前size是否小于等于maxSize,是的话则什么都不做，直接返回。否则从LinkedHashMap中获取最少使用的数据，并将之移除。
 
 
 
